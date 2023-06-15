@@ -1,4 +1,6 @@
-package main
+package tournament
+
+import "fmt"
 
 const (
 	REGISTERED_MESSAGE   = `{"type": "registered"}`
@@ -13,6 +15,10 @@ const (
 	WIN_MESSAGE  = `{"type": "win"}`
 	LOSE_MESSAGE = `{"type": "lose"}`
 )
+
+func ErrorMessage(err string) string {
+	return fmt.Sprintf(`{"type": "error", "error": "%s"}`, err)
+}
 
 func isValidInitMessage(msg map[string]interface{}) bool {
 	typ, ok_typ := msg["type"]

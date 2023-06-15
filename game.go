@@ -1,4 +1,4 @@
-package main
+package tournament
 
 const (
 	TIE = ""
@@ -9,4 +9,8 @@ type game interface {
 	p2() string
 
 	finished() chan string
+
+	is_finished() bool
+
+	play(key string, move string)
 }
