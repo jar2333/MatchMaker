@@ -1,16 +1,23 @@
 package tournament
 
+type card struct {
+	color  string
+	number string
+}
+
 type unogame struct {
 	_p1 string
 	_p2 string
 
+	_hand1 []card
+	_hand2 []card
+
+	_discard_pile []card
+	_draw_pile    []card
+
 	_chan        chan string
 	_is_finished bool
 }
-
-// =========================
-// = Generalizable methods
-// =========================
 
 func makeUnoGame(p1 string, p2 string) game {
 	return unogame{
@@ -18,8 +25,18 @@ func makeUnoGame(p1 string, p2 string) game {
 		_p2:          p2,
 		_chan:        make(chan string),
 		_is_finished: false,
+
+		_hand1: make([]card, 0),
+		_hand2: make([]card, 0),
+
+		_discard_pile: make([]card, 0, 108),
+		_draw_pile:    make([]card, 0, 108),
 	}
 }
+
+// =========================
+// = Generalizable methods
+// =========================
 
 func (g unogame) P1() string {
 	return g._p1
@@ -52,6 +69,17 @@ func (g unogame) Play(key string, move map[string]interface{}) bool {
 	switch typ {
 	case "draw":
 		g.draw(key)
+	case "discard":
+		if pos, ok := move["position"]; !ok {
+			return false
+		} else {
+			switch pos.(type) {
+			case int:
+				g.discard(key, pos.(int))
+			default:
+				return false
+			}
+		}
 	default:
 		return false
 	}
@@ -70,5 +98,9 @@ func (g *unogame) setWinner(key string) {
 // =========================
 
 func (g *unogame) draw(key string) {
+
+}
+
+func (g *unogame) discard(key string, position int) {
 
 }
