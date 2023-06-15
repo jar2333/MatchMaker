@@ -16,11 +16,13 @@ func (g unogame) p2() string {
 	return g._p2
 }
 
-func (g unogame) finished() chan string {
-	return g._chan
+func (g unogame) waitForWinner() string {
+	ch := g._chan
+	winner := <-ch
+	return winner
 }
 
-func (g unogame) is_finished() bool {
+func (g unogame) isFinished() bool {
 	return g._is_finished
 }
 

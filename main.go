@@ -133,14 +133,13 @@ func playGame(g game) {
 
 	// Loop until game is finished and winner is found:
 	var move string
-	var winner string = TIE
-	for !g.is_finished() {
+	for !g.isFinished() {
 		// Parse player 1's move, perform it, send game state
 		move = readMove(conn1)
 		g.play(p1, move)
 		sendState(conn1, g)
 
-		if g.is_finished() {
+		if g.isFinished() {
 			break
 		}
 
@@ -150,9 +149,6 @@ func playGame(g game) {
 		sendState(conn2, g)
 	}
 
-	// Mark game as finished, send winning player key (or tie)
-	// NOTE: MAYBE SHOULD BE DONE _INSIDE_ THE GAME METHODS?
-	g.finished() <- winner
 }
 
 func readMove(conn *websocket.Conn) string {
@@ -223,8 +219,7 @@ func evalGame(p pair) string {
 	games <- game
 
 	// Get winner of game from channel
-	var ch chan string = game.finished()
-	var winner string = <-ch
+	winner := game.waitForWinner()
 
 	return winner
 }

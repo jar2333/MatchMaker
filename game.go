@@ -8,9 +8,9 @@ type game interface {
 	p1() string
 	p2() string
 
-	finished() chan string
+	waitForWinner() string
 
-	is_finished() bool
+	isFinished() bool
 
 	play(key string, move string)
 }
