@@ -69,7 +69,7 @@ func (g unogame) Play(key string, move map[string]interface{}) bool {
 	switch typ {
 	case "draw":
 		g.draw(key)
-	case "discard":
+	case "play":
 		if pos, ok := move["position"]; !ok {
 			return false
 		} else {
