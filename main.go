@@ -124,36 +124,43 @@ func playGames() {
 
 func playGame(g game) {
 	// Get player keys for this game
-	p1 := g.p1()
-	p2 := g.p2()
+	p1 := g.P1()
+	p2 := g.P2()
 
 	// Grab a reference to the websockets corresponding to player 1 and player 2
 	conn1 := reg.getConnection(p1)
 	conn2 := reg.getConnection(p2)
 
 	// Loop until game is finished and winner is found:
-	var move string
-	for !g.isFinished() {
+	var msg []byte
+	var played bool
+	for !g.IsFinished() {
 		// Parse player 1's move, perform it, send game state
-		move = readMove(conn1)
-		g.play(p1, move)
+		played = false
+		for !played {
+			msg = readMessage(conn1)
+			played = g.Play(p1, parseMove(msg))
+		}
 		sendState(conn1, g)
 
-		if g.isFinished() {
+		if g.IsFinished() {
 			break
 		}
 
 		// Parse player 2's move, perform it, send game state
-		move = readMove(conn2)
-		g.play(p2, move)
+		played = false
+		for !played {
+			msg = readMessage(conn2)
+			played = g.Play(p2, parseMove(msg))
+		}
 		sendState(conn2, g)
 	}
 
 }
 
-func readMove(conn *websocket.Conn) string {
+func readMessage(conn *websocket.Conn) []byte {
 	// Not yet implemented
-	return ""
+	return make([]byte, 0)
 }
 
 func sendState(conn *websocket.Conn, g game) {
@@ -219,7 +226,7 @@ func evalGame(p pair) string {
 	games <- game
 
 	// Get winner of game from channel
-	winner := game.waitForWinner()
+	winner := game.WaitForWinner()
 
 	return winner
 }

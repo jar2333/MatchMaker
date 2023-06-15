@@ -5,12 +5,12 @@ const (
 )
 
 type game interface {
-	p1() string
-	p2() string
+	P1() string
+	P2() string
 
-	waitForWinner() string
+	WaitForWinner() string
 
-	isFinished() bool
+	IsFinished() bool
 
-	play(key string, move string)
+	Play(key string, move map[string]interface{}) bool
 }
