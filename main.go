@@ -1,11 +1,13 @@
 package tournament
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -22,14 +24,12 @@ var reg registry = makeRegistry()
 var games chan game = make(chan game)
 
 var has_tournament_started bool = false
-var tournament_finished chan bool = make(chan bool)
 
 // =============================
 // = Websocket server
 // =============================
 
 func main() {
-	defer close(games)
 	defer reg.close()
 
 	// Get command-line arguments
@@ -39,10 +39,14 @@ func main() {
 		return
 	}
 
+	// Load player keys from file
+	loadKeys()
+
 	// Set http handler and start server
 	http.HandleFunc("/", handler)
 
-	err := http.ListenAndServe(":3333", nil)
+	port := ":" + arguments[1]
+	err := http.ListenAndServe(port, nil)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
@@ -56,10 +60,18 @@ func main() {
 
 	// Play tournament until finishing
 	has_tournament_started = true
-	go matchMake()
-	go playGames()
-	<-tournament_finished
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		defer close(games)
+		go playGames() // Ends when games channel is closed
+		matchMake()    // Ends when tournament is over
+	}()
+
+	wg.Wait() // Wait until tournament is over
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -71,45 +83,71 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Create websocket connection with client
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// Error when creating connection, close
 		log.Println(err)
 		conn.Close()
 		return
 	}
 
-	key := getKey(conn)
+	// If key was obtained succesfully, register player.
+	key, ok := getKey(conn)
+	if !ok {
+		conn.Close()
+		return
+	}
 
 	reg.registerPlayer(key, conn)
 }
 
-func getKey(conn *websocket.Conn) string {
-	for {
-		// Read message from websocket connection
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		// Check if message string is a key
-		msg := string(p)
-		_, ok := KEYS[msg]
-		if ok {
-			// Write to connection to signal that client has been registered
-			if err := conn.WriteMessage(messageType, []byte(REGISTERED_MESSAGE)); err != nil {
-				log.Println(err)
-				continue
-			}
-
-			// Return player key
-			return msg
-		}
-
+func getKey(conn *websocket.Conn) (string, bool) {
+	// Read message from websocket connection
+	messageType, p, err := conn.ReadMessage()
+	if err != nil {
+		log.Println(err)
+		return "", false
 	}
+
+	// Check if message string is a key
+	msg := string(p)
+	_, ok := KEYS[msg]
+	if ok {
+		// Write to connection to signal that client has been registered
+		if err := conn.WriteMessage(messageType, []byte(REGISTERED_MESSAGE)); err != nil {
+			log.Println(err)
+			return "", false
+		}
+
+		// Return player key
+		return msg, true
+	}
+
+	return "", false
 }
 
 func waitForTournamentStart() {
 	// UNIMPLEMENTED
+}
+
+func loadKeys() {
+	dat, err := os.ReadFile("/keys.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	lines := SplitLines(string(dat))
+
+	for _, l := range lines {
+		KEYS[l] = true
+	}
+
+}
+
+func SplitLines(s string) []string {
+	var lines []string
+	sc := bufio.NewScanner(strings.NewReader(s))
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+	return lines
 }
 
 // =============================
@@ -131,7 +169,7 @@ func playGame(g game) {
 	conn1 := reg.getConnection(p1)
 	conn2 := reg.getConnection(p2)
 
-	// Loop until game is finished and winner is found:
+	// Game loop until game is finished and winner is found:
 	var msg []byte
 	var played bool
 	for !g.IsFinished() {
@@ -159,8 +197,15 @@ func playGame(g game) {
 }
 
 func readMessage(conn *websocket.Conn) []byte {
-	// Not yet implemented
-	return make([]byte, 0)
+	for {
+		// Read message from websocket connection
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		return msg
+	}
 }
 
 func sendState(conn *websocket.Conn, g game) {
@@ -199,9 +244,6 @@ func matchMake() {
 		}
 
 	}
-
-	// All games played!
-	tournament_finished <- true
 }
 
 func evalGame(p pair) string {
