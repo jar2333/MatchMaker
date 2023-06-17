@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,7 +18,9 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var KEYS = map[string]bool{"testkey": true}
+var TOURNAMENT_DATE time.Time
+
+var KEYS = map[string]bool{}
 
 var has_tournament_started bool = false
 
@@ -33,8 +36,9 @@ func main() {
 		return
 	}
 
-	// Load player keys from file
+	// Load player keys and tournament date from files
 	loadKeys()
+	loadDate()
 
 	// Create tournament
 	tournament := makeTournament()
@@ -113,6 +117,21 @@ func getKey(conn *websocket.Conn) (string, bool) {
 
 func waitForTournamentStart() {
 	// UNIMPLEMENTED
+}
+
+func loadDate() {
+	dat, err := os.ReadFile("/date.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	// Calling Parse() method with its parameters
+	tm, e := time.Parse("Jan 1, 2001 at 1:00pm (EST)", string(dat))
+	if e != nil {
+		panic(err)
+	}
+
+	TOURNAMENT_DATE = tm
 }
 
 func loadKeys() {
