@@ -141,7 +141,7 @@ func loadKeys() {
 		panic(err)
 	}
 
-	lines := SplitLines(string(dat))
+	lines := splitLines(string(dat))
 
 	for _, l := range lines {
 		KEYS[l] = true
@@ -149,7 +149,7 @@ func loadKeys() {
 
 }
 
-func SplitLines(s string) []string {
+func splitLines(s string) []string {
 	var lines []string
 	sc := bufio.NewScanner(strings.NewReader(s))
 	for sc.Scan() {
