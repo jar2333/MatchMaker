@@ -1,19 +1,8 @@
 package main
 
-type card struct {
-	color  string
-	number string
-}
-
 type unogame struct {
 	_p1 string
 	_p2 string
-
-	_hand1 []card
-	_hand2 []card
-
-	_discard_pile []card
-	_draw_pile    []card
 
 	_chan        chan string
 	_is_finished bool
@@ -25,12 +14,6 @@ func makeUnoGame(p1 string, p2 string) game {
 		_p2:          p2,
 		_chan:        make(chan string),
 		_is_finished: false,
-
-		_hand1: make([]card, 0),
-		_hand2: make([]card, 0),
-
-		_discard_pile: make([]card, 0, 108),
-		_draw_pile:    make([]card, 0, 108),
 	}
 }
 
@@ -88,9 +71,9 @@ func (g unogame) Play(key string, move map[string]interface{}) bool {
 }
 
 func (g *unogame) setWinner(key string) {
+	g._is_finished = true
 	ch := g._chan
 	ch <- key
-	g._is_finished = true
 }
 
 // =========================
