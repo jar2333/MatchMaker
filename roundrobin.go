@@ -1,4 +1,4 @@
-package tournament
+package main
 
 const (
 	EMPTY_KEY = ""

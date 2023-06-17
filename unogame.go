@@ -1,4 +1,4 @@
-package tournament
+package main
 
 type card struct {
 	color  string

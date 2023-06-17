@@ -1,4 +1,4 @@
-package tournament
+package main
 
 import (
 	"log"

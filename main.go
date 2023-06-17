@@ -1,7 +1,8 @@
-package tournament
+package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -44,26 +45,42 @@ func main() {
 	tournament := makeTournament()
 
 	// Set http handler and start server
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(tournament, w, r)
-	})
-
 	port := ":" + arguments[1]
-	err := http.ListenAndServe(port, nil)
-
-	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
-	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
-		os.Exit(1)
-	}
+	srv := startServer(port, tournament)
 
 	// Wait for tournament to start
-	waitForTournamentStart()
+	waitForTournamentDate()
 
 	// Play tournament until finishing
 	has_tournament_started = true
 	tournament.Start()
+
+	if err := srv.Shutdown(context.TODO()); err != nil {
+		panic(err) // failure/timeout shutting down the server gracefully
+	}
+}
+
+func startServer(port string, t *tournament) *http.Server {
+	srv := &http.Server{Addr: port}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handler(t, w, r)
+	})
+
+	go func() {
+		fmt.Printf("server started\n")
+		err := srv.ListenAndServe()
+
+		if errors.Is(err, http.ErrServerClosed) {
+			fmt.Printf("server closed\n")
+			os.Exit(1)
+		} else if err != nil {
+			fmt.Printf("error starting server: %s\n", err)
+			panic(err)
+		}
+	}()
+
+	return srv
 }
 
 func handler(t *tournament, w http.ResponseWriter, r *http.Request) {
@@ -115,28 +132,29 @@ func getKey(conn *websocket.Conn) (string, bool) {
 	return "", false
 }
 
-func waitForTournamentStart() {
+func waitForTournamentDate() {
+	fmt.Printf("Waiting for tournament to start...\n")
 	duration := time.Until(TOURNAMENT_DATE)
 	time.Sleep(duration)
 }
 
 func loadDate() {
-	dat, err := os.ReadFile("/date.txt")
+	dat, err := os.ReadFile("./date.txt")
 	if err != nil {
 		panic(err)
 	}
 
 	// Calling Parse() method with its parameters
-	tm, e := time.Parse("Jan 1, 2001 at 1:00pm (EST)", string(dat))
+	tm, e := time.Parse(time.RFC822, string(dat))
 	if e != nil {
-		panic(err)
+		panic(e)
 	}
 
 	TOURNAMENT_DATE = tm
 }
 
 func loadKeys() {
-	dat, err := os.ReadFile("/keys.txt")
+	dat, err := os.ReadFile("./keys.txt")
 	if err != nil {
 		panic(err)
 	}
