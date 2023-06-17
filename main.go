@@ -116,7 +116,8 @@ func getKey(conn *websocket.Conn) (string, bool) {
 }
 
 func waitForTournamentStart() {
-	// UNIMPLEMENTED
+	duration := time.Until(TOURNAMENT_DATE)
+	time.Sleep(duration)
 }
 
 func loadDate() {
