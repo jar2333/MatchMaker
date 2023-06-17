@@ -55,6 +55,7 @@ func main() {
 	has_tournament_started = true
 	tournament.Start()
 
+	// Shut server down
 	if err := srv.Shutdown(context.TODO()); err != nil {
 		panic(err) // failure/timeout shutting down the server gracefully
 	}
