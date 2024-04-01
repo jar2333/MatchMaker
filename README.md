@@ -1,8 +1,8 @@
-# Tournament Game Server
+# MatchMaker Game Server
 
 A generic websocket server for hosting round-robin tournaments for two-player, turn-based games. 
 
-Extensible using a provided game interface. Provided is an example implementation of the UNO card game.
+Extensible using a provided game interface. To be provided is an example implementation of Rock Paper Scissors and the UNO card game.
 
 ## Game agnostic API:
 
