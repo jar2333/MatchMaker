@@ -2,7 +2,7 @@
 
 A generic websocket server for hosting round-robin tournaments for two-player, turn-based games. 
 
-Extensible using a provided game interface. To be provided is an example implementation of Rock Paper Scissors and the UNO card game.
+Extensible using a provided game interface. To be provided is an example implementation of Rock Paper Scissors.
 
 ## Game agnostic API:
 
@@ -49,18 +49,3 @@ After the tournament has started:
      8. `{"type": "state", "state": <state_dict>, "timer": <time>}`
 
      Received after a game start message (see 1. above), and after a valid or invalid move message (6. and 7. above). Contains a dictionary <state_dict> encoding the state of the game, and a float <time> denoting how many seconds are left in the timer. Note, not all posible moves end the player's turn. An explicit turn ended message (see 4. above) will be sent shortly afterwards if the turn was ended. Otherwise, another reading move message (see 5. above) will be sent instead, indicating that another player move is being read.
-
-## `UnoGame` specific API:
-* Sent messages
-    1. `{"type": "draw"}`
-
-    Draws a card from the draw pile, if allowed by the current game state.
-
-    2. `{"type": "play", "position": <position>}`
-
-    Plays the card in the hand specified by the int index <position>, if the index is valid and the card can be played (discarded onto the discard pile) as per the rules of Uno.
-
-    3. tbd...
-
-* Received messages
-    1. tbd...
