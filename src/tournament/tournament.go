@@ -1,4 +1,4 @@
-package main
+package tournament
 
 import (
 	"log"
@@ -8,14 +8,16 @@ import (
 )
 
 type tournament struct {
-	reg   registry
-	games chan game
+	reg          registry
+	games        chan game
+	game_factory func(p1 string, p2 string) string
 }
 
-func makeTournament() *tournament {
+func makeTournament(game_factory func(p1 string, p2 string) string) *tournament {
 	return &tournament{
-		reg:   makeRegistry(),
-		games: make(chan game),
+		reg:          makeRegistry(),
+		games:        make(chan game),
+		game_factory: game_factory,
 	}
 }
 
@@ -159,7 +161,7 @@ func (t *tournament) evalGame(p pair) string {
 	}
 
 	// Create new game
-	game := makeGame(p1, p2)
+	game := t.game_factory(p1, p2)
 
 	// Send game to games channel
 	t.games <- game

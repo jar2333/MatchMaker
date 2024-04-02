@@ -1,4 +1,4 @@
-package main
+package tournament
 
 const (
 	EMPTY_KEY = ""
@@ -41,6 +41,7 @@ func getRound(keys []string) []pair {
 	return round
 }
 
+// Shifts the elements of the slice to the right, wrapping
 func shift(keys []string) {
 	last := keys[len(keys)-1]
 
@@ -51,6 +52,7 @@ func shift(keys []string) {
 	keys[0] = last
 }
 
+// Recreates python modulo
 func mod(i int, n int) int {
 	return ((i % n) + n) % n
 }
