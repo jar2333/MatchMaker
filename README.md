@@ -8,16 +8,18 @@ Extensible using a provided game interface. To be provided is an example impleme
 
 When tournament has not started: 
 
- * Sent messages:
-     1. `{"type": "register", "key": "<key>"}`
+ * Requests:
+     1. `{"type": "match_make"}`
+  
+     This command asks the server to find a matching player for the client to play against.
+    
+     2. `{"type": "tournament_register", "key": "<key>"}`
 
-     This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The <key> field must be one of the unique keys found inside `keys.txt`. This is a unique identifier for the player, and used internally as such.
-
-     2. tbd...
+     This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The <key> field must be a unique identifier for a tournament.
 
 After the tournament has started:
     
- * Received messages:
+ * Responses:
      1. `{"type": "game_start"}`
 
      Received when a game involving this client has started. If this client is player 1, a message indicating that their turn has started will be sent shortly afterwards (see 3. below).
