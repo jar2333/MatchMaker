@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func parseMove(msg []byte) map[string]interface{} {
+func ParseMove(msg []byte) map[string]interface{} {
 	var move map[string]interface{}
 
 	err := json.Unmarshal(msg, &move)

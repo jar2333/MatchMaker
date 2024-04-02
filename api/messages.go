@@ -20,7 +20,7 @@ func ErrorMessage(err string) string {
 	return fmt.Sprintf(`{"type": "error", "error": "%s"}`, err)
 }
 
-func isValidInitMessage(msg map[string]interface{}) bool {
+func IsValidInitMessage(msg map[string]interface{}) bool {
 	typ, ok_typ := msg["type"]
 	_, ok_key := msg["key"]
 
@@ -31,6 +31,6 @@ func isValidInitMessage(msg map[string]interface{}) bool {
 	return typ.(string) == "register"
 }
 
-func createStateMessage(state_information map[string]interface{}, time float64) map[string]interface{} {
+func CreateStateMessage(state_information map[string]interface{}, time float64) map[string]interface{} {
 	return map[string]interface{}{"type": "state", "state": state_information, "timer": time}
 }

@@ -5,18 +5,21 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/jar2333/MatchMaker/api"
+	"github.com/jar2333/MatchMaker/game"
 )
 
 type tournament struct {
 	reg          registry
-	games        chan game
-	game_factory func(p1 string, p2 string) string
+	games        chan game.Game
+	game_factory func(p1 string, p2 string) game.Game
 }
 
-func makeTournament(game_factory func(p1 string, p2 string) string) *tournament {
+func makeTournament(game_factory func(p1 string, p2 string) game.Game) *tournament {
 	return &tournament{
 		reg:          makeRegistry(),
-		games:        make(chan game),
+		games:        make(chan game.Game),
 		game_factory: game_factory,
 	}
 }
@@ -51,7 +54,7 @@ func (t *tournament) playGames() {
 	}
 }
 
-func (t *tournament) playGame(g game) {
+func (t *tournament) playGame(g game.Game) {
 	// Get registry
 	reg := &t.reg
 
@@ -71,7 +74,7 @@ func (t *tournament) playGame(g game) {
 		played = false
 		for !played {
 			msg = readMessage(conn1)
-			played = g.Play(p1, parseMove(msg))
+			played = g.Play(p1, api.ParseMove(msg))
 		}
 		sendState(conn1, g)
 
@@ -83,7 +86,7 @@ func (t *tournament) playGame(g game) {
 		played = false
 		for !played {
 			msg = readMessage(conn2)
-			played = g.Play(p2, parseMove(msg))
+			played = g.Play(p2, api.ParseMove(msg))
 		}
 		sendState(conn2, g)
 	}
@@ -102,7 +105,7 @@ func readMessage(conn *websocket.Conn) []byte {
 	}
 }
 
-func sendState(conn *websocket.Conn, g game) {
+func sendState(conn *websocket.Conn, g game.Game) {
 	// Not yet implemented
 }
 

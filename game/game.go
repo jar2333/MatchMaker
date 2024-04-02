@@ -4,7 +4,7 @@ const (
 	TIE = ""
 )
 
-type game interface {
+type Game interface {
 	P1() string
 	P2() string
 
