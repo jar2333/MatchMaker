@@ -13,9 +13,9 @@ When tournament has not started:
   
      This command asks the server to find a matching player for the client to play against.
     
-     2. `{"type": "tournament_register", "key": "<key>"}`
+     2. `{"type": "tournament_register", "tournament": "<id>"}`
 
-     This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The <key> field must be a unique identifier for a tournament.
+     This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The `<id>` field must be a unique identifier for a tournament.
 
 After the tournament has started:
     
