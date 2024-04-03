@@ -11,26 +11,26 @@ import (
 )
 
 type Tournament struct {
-	reg          registry
+	reg          Registry
 	games        chan game.Game
 	game_factory func(p1 string, p2 string) game.Game
 }
 
 func MakeTournament(game_factory func(p1 string, p2 string) game.Game) *Tournament {
 	return &Tournament{
-		reg:          makeRegistry(),
+		reg:          MakeRegistry(),
 		games:        make(chan game.Game),
 		game_factory: game_factory,
 	}
 }
 
 func (t *Tournament) Register(key string, conn *websocket.Conn) {
-	t.reg.registerPlayer(key, conn)
+	t.reg.RegisterPlayer(key, conn)
 }
 
 func (t *Tournament) Start() {
 	defer close(t.games)
-	defer t.reg.close()
+	defer t.reg.Close()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -55,7 +55,7 @@ func (t *Tournament) playGames() {
 }
 
 func (t *Tournament) playGame(g game.Game) {
-	// Get registry
+	// Get Registry
 	reg := &t.reg
 
 	// Get player keys for this game
@@ -63,8 +63,8 @@ func (t *Tournament) playGame(g game.Game) {
 	p2 := g.P2()
 
 	// Grab a reference to the websockets corresponding to player 1 and player 2
-	conn1 := reg.getConnection(p1)
-	conn2 := reg.getConnection(p2)
+	conn1 := reg.GetConnection(p1)
+	conn2 := reg.GetConnection(p2)
 
 	// Game loop until game is finished and winner is found:
 	var msg []byte
@@ -114,11 +114,11 @@ func sendState(conn *websocket.Conn, g game.Game) {
 // =============================
 
 func (t *Tournament) matchMake() {
-	// Get registry
+	// Get Registry
 	reg := &t.reg
 
 	// START: create Tournament schedule
-	registered := reg.getRegistered()
+	registered := reg.GetRegistered()
 
 	schedule := getSchedule(registered)
 
@@ -140,7 +140,7 @@ func (t *Tournament) matchMake() {
 		wg.Wait()
 
 		for winner := range results {
-			reg.recordWin(winner)
+			reg.RecordWin(winner)
 		}
 
 	}
@@ -152,13 +152,13 @@ func (t *Tournament) evalGame(p pair) string {
 
 	reg := &t.reg
 
-	if (p1 == EMPTY_KEY || reg.isDisqualified(p1)) && (p2 == EMPTY_KEY || reg.isDisqualified(p2)) {
+	if (p1 == EMPTY_KEY || reg.IsDisqualified(p1)) && (p2 == EMPTY_KEY || reg.IsDisqualified(p2)) {
 		// No winner
 		return EMPTY_KEY
-	} else if p1 == EMPTY_KEY || reg.isDisqualified(p1) {
+	} else if p1 == EMPTY_KEY || reg.IsDisqualified(p1) {
 		// Player 1 loses, Player 2 wins
 		return p2
-	} else if p2 == EMPTY_KEY || reg.isDisqualified(p2) {
+	} else if p2 == EMPTY_KEY || reg.IsDisqualified(p2) {
 		// Player 2 loses, Player 1 wins
 		return p1
 	}
