@@ -32,3 +32,7 @@ func (g *MockGame) IsFinished() bool {
 func (g *MockGame) Play(key string, move map[string]interface{}) bool {
 	return true
 }
+
+func (g *MockGame) State() map[string]interface{} {
+	return make(map[string]interface{})
+}
