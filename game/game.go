@@ -16,9 +16,9 @@ type Game interface {
 	// Queries to ask if the game is finished
 	IsFinished() bool
 
-	// Plays a given move dictionary
-	Play(key string, move map[string]interface{}) bool
+	// Attempts to play turn a given move dictionary, returns false on failure to realize play
+	Play(player_id string, move map[string]interface{}) bool
 
-	// Returns a state dictionary
+	// Returns a state dictionary to send to players
 	State() map[string]interface{}
 }
