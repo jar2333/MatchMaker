@@ -1,4 +1,4 @@
-package main
+package matchmaker
 
 import (
 	"bufio"
@@ -12,6 +12,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/jar2333/MatchMaker/api"
+	"github.com/jar2333/MatchMaker/game"
+	"github.com/jar2333/MatchMaker/tournament"
 )
 
 var upgrader = websocket.Upgrader{
@@ -42,7 +46,9 @@ func main() {
 	loadDate()
 
 	// Create tournament
-	tournament := makeTournament()
+	tournament := tournament.MakeTournament(func(p1 string, p2 string) game.Game {
+		return game.MakeMockGame(p1, p2, p1) // make p1 win
+	})
 
 	// Set http handler and start server
 	port := ":" + arguments[1]
@@ -61,7 +67,7 @@ func main() {
 	}
 }
 
-func startServer(port string, t *tournament) *http.Server {
+func startServer(port string, t *tournament.Tournament) *http.Server {
 	srv := &http.Server{Addr: port}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +90,7 @@ func startServer(port string, t *tournament) *http.Server {
 	return srv
 }
 
-func handler(t *tournament, w http.ResponseWriter, r *http.Request) {
+func handler(t *tournament.Tournament, w http.ResponseWriter, r *http.Request) {
 	// If tournament has already started, accept no new connections
 	if has_tournament_started {
 		return
@@ -121,7 +127,7 @@ func getKey(conn *websocket.Conn) (string, bool) {
 	_, ok := KEYS[msg]
 	if ok {
 		// Write to connection to signal that client has been registered
-		if err := conn.WriteMessage(messageType, []byte(REGISTERED_MESSAGE)); err != nil {
+		if err := conn.WriteMessage(messageType, []byte(api.REGISTERED_MESSAGE)); err != nil {
 			log.Println(err)
 			return "", false
 		}

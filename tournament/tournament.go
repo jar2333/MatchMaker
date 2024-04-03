@@ -1,29 +1,34 @@
-package main
+package tournament
 
 import (
 	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/jar2333/MatchMaker/api"
+	"github.com/jar2333/MatchMaker/game"
 )
 
-type tournament struct {
-	reg   registry
-	games chan game
+type Tournament struct {
+	reg          registry
+	games        chan game.Game
+	game_factory func(p1 string, p2 string) game.Game
 }
 
-func makeTournament() *tournament {
-	return &tournament{
-		reg:   makeRegistry(),
-		games: make(chan game),
+func MakeTournament(game_factory func(p1 string, p2 string) game.Game) *Tournament {
+	return &Tournament{
+		reg:          makeRegistry(),
+		games:        make(chan game.Game),
+		game_factory: game_factory,
 	}
 }
 
-func (t *tournament) Register(key string, conn *websocket.Conn) {
+func (t *Tournament) Register(key string, conn *websocket.Conn) {
 	t.reg.registerPlayer(key, conn)
 }
 
-func (t *tournament) Start() {
+func (t *Tournament) Start() {
 	defer close(t.games)
 	defer t.reg.close()
 
@@ -33,23 +38,23 @@ func (t *tournament) Start() {
 	go func() {
 		defer wg.Done()
 		go t.playGames() // Ends when games channel is closed
-		t.matchMake()    // Ends when tournament is over
+		t.matchMake()    // Ends when Tournament is over
 	}()
 
-	wg.Wait() // Wait until tournament is over
+	wg.Wait() // Wait until Tournament is over
 }
 
 // =============================
 // = Game-playing goroutines
 // =============================
 
-func (t *tournament) playGames() {
+func (t *Tournament) playGames() {
 	for g := range t.games {
 		go t.playGame(g)
 	}
 }
 
-func (t *tournament) playGame(g game) {
+func (t *Tournament) playGame(g game.Game) {
 	// Get registry
 	reg := &t.reg
 
@@ -69,7 +74,7 @@ func (t *tournament) playGame(g game) {
 		played = false
 		for !played {
 			msg = readMessage(conn1)
-			played = g.Play(p1, parseMove(msg))
+			played = g.Play(p1, api.ParseMove(msg))
 		}
 		sendState(conn1, g)
 
@@ -81,7 +86,7 @@ func (t *tournament) playGame(g game) {
 		played = false
 		for !played {
 			msg = readMessage(conn2)
-			played = g.Play(p2, parseMove(msg))
+			played = g.Play(p2, api.ParseMove(msg))
 		}
 		sendState(conn2, g)
 	}
@@ -100,7 +105,7 @@ func readMessage(conn *websocket.Conn) []byte {
 	}
 }
 
-func sendState(conn *websocket.Conn, g game) {
+func sendState(conn *websocket.Conn, g game.Game) {
 	// Not yet implemented
 }
 
@@ -108,11 +113,11 @@ func sendState(conn *websocket.Conn, g game) {
 // = Match-making goroutines
 // =============================
 
-func (t *tournament) matchMake() {
+func (t *Tournament) matchMake() {
 	// Get registry
 	reg := &t.reg
 
-	// START: create tournament schedule
+	// START: create Tournament schedule
 	registered := reg.getRegistered()
 
 	schedule := getSchedule(registered)
@@ -141,7 +146,7 @@ func (t *tournament) matchMake() {
 	}
 }
 
-func (t *tournament) evalGame(p pair) string {
+func (t *Tournament) evalGame(p pair) string {
 	p1 := p.p1
 	p2 := p.p2
 
@@ -159,7 +164,7 @@ func (t *tournament) evalGame(p pair) string {
 	}
 
 	// Create new game
-	game := makeGame(p1, p2)
+	game := t.game_factory(p1, p2)
 
 	// Send game to games channel
 	t.games <- game

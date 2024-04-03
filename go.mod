@@ -1,9 +1,5 @@
-module tournament
+module github.com/jar2333/MatchMaker
 
-go 1.20
+go 1.22.1
 
 require github.com/gorilla/websocket v1.5.0
-
-require (
-	github.com/jar2333/goUno v0.0.0-20211029191649-cae7738bfadb
-)
