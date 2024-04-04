@@ -22,8 +22,8 @@ func MakeTournament(game_factory func(p1 string, p2 string) game.Game) *Tourname
 	}
 }
 
-func (t *Tournament) Register(key string, conn *websocket.Conn) {
-	t.reg.RegisterPlayer(key, conn)
+func (t *Tournament) Register(player_id string, conn *websocket.Conn) {
+	t.reg.RegisterPlayer(player_id, conn)
 }
 
 func (t *Tournament) Start() {
@@ -33,13 +33,18 @@ func (t *Tournament) Start() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
+	// Sets up tournament matchmaking, queues up games which need to be played
 	go func() {
 		defer wg.Done()
-		go t.playGames() // Ends when games channel is closed
-		t.matchMake()    // Ends when Tournament is over
+		t.matchMake()
 	}()
 
-	wg.Wait() // Wait until Tournament is over
+	// Plays games as they are queued to the games channel
+	// Ends when games channel is closed
+	go t.playGames()
+
+	// Wait until Tournament is over
+	wg.Wait()
 }
 
 // =============================
