@@ -4,39 +4,64 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
+
 	"github.com/jar2333/MatchMaker/api"
 )
 
+// =============================
+// = Game playing function
+// =============================
+
+// Play the Game g, given two websockets, each corresponding to a player
 func Play(g Game, conn1 *websocket.Conn, conn2 *websocket.Conn) {
 	// Get player keys for this game
 	p1 := g.P1()
 	p2 := g.P2()
 
 	// Game loop until game is finished and winner is found:
-	var msg []byte
-	var played bool
 	for !g.IsFinished() {
-		// Parse player 1's move, perform it, send game state
-		played = false
-		for !played {
-			msg = readMessage(conn1)
-			played = g.Play(p1, api.ParseMove(msg))
-		}
-		sendState(conn1, g)
+		playTurn(g, conn1, p1)
 
 		if g.IsFinished() {
 			break
 		}
 
-		// Parse player 2's move, perform it, send game state
-		played = false
-		for !played {
-			msg = readMessage(conn2)
-			played = g.Play(p2, api.ParseMove(msg))
-		}
-		sendState(conn2, g)
+		playTurn(g, conn2, p2)
 	}
 
+}
+
+// =============================
+// = Helper functions
+// =============================
+
+// Turn logic loop
+func playTurn(g Game, conn *websocket.Conn, player_id string) {
+	var msg []byte
+	for {
+		// Read message sent by player
+		msg = readMessage(conn)
+
+		// Attempt to parse move from message
+		move, err := api.ParseMove(msg)
+		if err != nil {
+			// Parsing error
+			sendError(conn, err)
+			continue
+		}
+
+		// Attempt to play the player's turn
+		err = g.PlayTurn(player_id, move)
+		if err != nil {
+			// Gameplay error
+			sendError(conn, err)
+		} else {
+			break
+		}
+	}
+
+	// Send game state to player
+	sendState(conn, g.State())
 }
 
 func readMessage(conn *websocket.Conn) []byte {
@@ -51,6 +76,10 @@ func readMessage(conn *websocket.Conn) []byte {
 	}
 }
 
-func sendState(conn *websocket.Conn, g Game) {
+func sendError(conn *websocket.Conn, err error) {
+	// Not yet implemented
+}
+
+func sendState(conn *websocket.Conn, state map[string]interface{}) {
 	// Not yet implemented
 }

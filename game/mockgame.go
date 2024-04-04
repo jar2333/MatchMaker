@@ -35,8 +35,8 @@ func (g *MockGame) IsFinished() bool {
 	return g._is_finished
 }
 
-func (g *MockGame) Play(key string, move map[string]interface{}) bool {
-	return true
+func (g *MockGame) PlayTurn(key string, move map[string]interface{}) error {
+	return nil
 }
 
 func (g *MockGame) State() map[string]interface{} {
