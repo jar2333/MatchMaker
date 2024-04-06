@@ -1,6 +1,6 @@
 # MatchMaker Game Server
 
-A generic websocket server for hosting round-robin tournaments for two-player, turn-based games. 
+A generic websocket server for hosting matches of two-player, turn-based games. Has support for round-robin tournament hosting.https://github.com/jar2333/MatchMaker 
 
 Extensible using a provided game interface. To be provided is an example implementation of Rock Paper Scissors.
 

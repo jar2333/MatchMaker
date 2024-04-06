@@ -60,9 +60,9 @@ func startServer(port string) *http.Server {
 	return srv
 }
 
-// ===========================================================
-// == Change this code to fetch a tournament from service
-// ===========================================================
+// ====================
+// == HTTP Handlers
+// ====================
 func handler(w http.ResponseWriter, r *http.Request) {
 	// Add authentication here!
 
@@ -124,9 +124,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// ===========================================
-// == Change this code to get tournament key
-// ===========================================
+// ==================
+// == Helpers
+// ==================
 func getTournamentKey(conn *websocket.Conn) (string, bool) {
 	// Read message from websocket connection
 	// 	messageType, p, err := conn.ReadMessage()
