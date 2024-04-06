@@ -4,18 +4,29 @@ A generic websocket server for hosting matches of two-player, turn-based games. 
 
 Extensible using a provided game interface. To be provided is an example implementation of Rock Paper Scissors.
 
-## Game agnostic API:
+## Resource API
 
 When connecting to the server, a RESTful HTTP API is specified to request a game connection:
-<!--
-1. `GET /matchmake`
 
-This command asks the server to find a matching player for the client to play against.
+1. `GET /game`
 
-2. `GET /tournament/<id>`
+This request asks the server to find a game with a matching player for the client to play against, returning a websocket connection to play the game with the Game API.
 
-This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The `<id>` field must be a unique identifier for a tournament.
--->
+2. `GET /tournament`
+
+2. `POST /tournament`
+
+2. `DELETE /tournament/<id>`
+
+2. `GET /tournament/<id>/registered/`
+
+2. `POST /tournament/<id>/registered/`
+
+<!-- This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The `<id>` field must be a unique identifier for a tournament. -->
+
+## Game API
+
+### Game agnostic API:
 
 During a game, a WebSocket connection is established, where the following JSON API is employed:
 
