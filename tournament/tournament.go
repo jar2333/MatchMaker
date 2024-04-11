@@ -8,6 +8,11 @@ import (
 	"github.com/jar2333/MatchMaker/game"
 )
 
+/**
+* ---------------------------------------------------
+* A tournament implements its own matchmaking logic.
+*----------------------------------------------------
+ */
 type Tournament struct {
 	reg          Registry
 	games        chan game.Game
@@ -23,6 +28,7 @@ func MakeTournament(game_factory func(p1 string, p2 string) game.Game) *Tourname
 }
 
 func (t *Tournament) Register(player_id string, conn *websocket.Conn) {
+
 	t.reg.RegisterPlayer(player_id, conn)
 }
 
@@ -82,7 +88,7 @@ func (t *Tournament) matchMake() {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				winner := t.evalGame(pair)
+				winner := t.evalPair(pair)
 				results <- winner
 			}()
 		}
@@ -96,7 +102,7 @@ func (t *Tournament) matchMake() {
 	}
 }
 
-func (t *Tournament) evalGame(p pair) string {
+func (t *Tournament) evalPair(p pair) string {
 	p1 := p.p1
 	p2 := p.p2
 

@@ -57,7 +57,7 @@ The Game API is documented more below.
 2. `GET /tournament/<id>/game`
 
 This request initiates a websocket connection with the server, allowing the player to participate in the tournament. 
-The `Authorization` header should be provided with the proper credentials for the tournament (username of registered user + tournament password), using the `Basic` authentication scheme. In this connection, multiple games may be played, corresponding to the tournament schedule.
+The `Authorization` header should be provided with the proper credentials for the tournament (username of registered user + tournament password), using the `Basic` authentication scheme. In this connection, multiple games may be played, corresponding to the tournament schedule. If the tournament is already taking place, the connection will fail. The client must attempt to connect before the tournament is scheduled to begin, and maintain that connection throughout.
 
 
 <!-- This command registers the client as a player. Closing the WebSocket connection before the torunament starts will unregister the player, requiring that this command be run again upon reconnection. The `<id>` field must be a unique identifier for a tournament. -->
@@ -90,8 +90,9 @@ the server should respond to messages sent by the player that specify a move.
 The following JSON API is employed to send/receive these messages.
 
  * Client messages:
-    1. `{"type": "move", "move": <move_dict>}`
-    Sent to specify a move to be played, using a JSON payload. The list of available move payloads is specified by the game's specific API.
+    1. `{"type": "move", "move": <move>}`
+
+    Sent to specify a move to be played, using a JSON payload `<move>`. The list of available move payloads is specified by the game's specific API.
 
  * Server messages:
      1. `{"type": "game_start"}`
@@ -122,6 +123,6 @@ The following JSON API is employed to send/receive these messages.
 
      Received when message sent by client was successfully parsed, leading to a game action. This resets the timer. Followed by a state message (8.).
 
-     8. `{"type": "state", "state": <state_dict>, "timer": <time>}`
+     8. `{"type": "state", "state": <state>, "timer": <time>}`
 
-     Received after a game start message (1.), and after a valid or invalid move message (6., 7.). Contains a JSON payload `<state_dict>` encoding the state of the game, and a float `<time>` denoting how many seconds are left in the timer. Note, a move may not end the player's turn. An explicit turn ended message (4.) will be sent shortly afterwards if the turn was ended. Otherwise, another reading move message (5.) will be sent instead, indicating that another player move is being read. The shape of `<state_dict>` is determined by the specific game being played.
+     Received after a game start message (1.), and after a valid or invalid move message (6., 7.). Contains a JSON payload `<state>` encoding the state of the game, and a float `<time>` denoting how many seconds are left in the timer. Note, a move may not end the player's turn. An explicit turn ended message (4.) will be sent shortly afterwards if the turn was ended. Otherwise, another reading move message (5.) will be sent instead, indicating that another player move is being read. The shape of `<state>` is determined by the specific game being played.
